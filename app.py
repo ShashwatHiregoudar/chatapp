@@ -3,7 +3,7 @@ import os
 import base64  # For handling the image data from the camera.
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads'  # Directory to store uploaded photos (make sure this exists!)
+app.config['UPLOAD_FOLDER'] = 'static/uploads'  # Directory to store uploaded photos (make sure this exists!)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload size (adjust as needed)
 
 
