@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Chat App</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <style>
+        /* Reset and basic styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full viewport height */
+        }
+
+        /* Header styles */
+        .header {
+            background-color: #4267B2; /* Facebook blue */
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            z-index: 10;  /* Ensure header stays on top */
+            
+        }
+
+        /* Chat container */
+        .chat-container {
+            flex-grow: 1; /* Take up remaining space */
+            overflow-y: auto; /* Scrollable content */
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            
+        }
+
+        /* Message styles */
+        .message {
+            background-color: white;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 18px; /* Rounded corners */
+            max-width: 75%; /* Limit message width */
+            align-self: flex-start; /* Align to the left by default (sender) */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            word-wrap: break-word;  /* Wrap long words */
+            
+        }
+
+        .message.user {
+            background-color: #DCF8C6; /* Light green for user messages */
+            align-self: flex-end; /* Align to the right for user messages */
+            
+        }
+
+        .message img {
+            max-width: 100%; /* Ensure image fits within message */
+            height: auto;
+            border-radius: 10px; /* Rounded corners for images */
+            display: block; /* Remove extra space under inline images */
+        }
+
+        /* Input area */
+        .input-area {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+            
+            
+        }
+
+        .input-area input[type="text"] {
+            flex-grow: 1; /* Expand to fill available space */
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px; /* Rounded input field */
+            margin-right: 10px;
+            font-size: 1rem;
+            outline: none; /* Remove default focus outline */
+            
+        }
+
+        .input-area button, .input-area input[type="file"]{
+             /* Style for both buttons */
+            background-color: #4267B2; /* Facebook blue */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px; /* Rounded button */
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s; /* Smooth transition */
+            margin-right: 5px;
+        }
+        .input-area input[type="file"]{
+            display: none;
+        }
+         .input-area label {
+            display: inline-block; /* So we can style it like a button */
+            background-color: #4267B2;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-right:5px;
+        }
+
+
+        .input-area button:hover {
+            background-color: #365899; /* Darker blue on hover */
+        }
+        .input-area label:hover {
+            background-color: #365899; /* Darker blue on hover */
+        }
+
+        /* Camera preview */
+        #camera-preview {
+            max-width: 100%; /* Ensure preview doesn't overflow */
+            height: auto;
+            display: none; /* Hidden by default */
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+      
+        #capture-button{
+             background-color: #4CAF50; /* Green for capture */
+        }
+
+        /* Clear button (styled differently) */
+        .clear-button {
+            background-color: #f44336; /* Red for clear */
+            color: white;
+            padding: 8px 12px;  /* Smaller padding */
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            margin: 0 auto; /* Center the button */
+            display: block;  /* Make it a block element to center */
+            margin-top: 10px;
+            margin-bottom: 10px;
+            
+        }
+
+        .clear-button:hover {
+            background-color: #d32f2f; /* Darker red on hover */
+        }
+
+       
+        /* Loading indicator (optional, for AJAX) */
+        .loading {
+            text-align: center;
+            padding: 10px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Simple Chat
+    </div>
+
+    <div class="chat-container" id="chat-messages">
+        {% for message in messages %}
+            <div class="message {% if message.text %}user{% endif %}">
+                {% if message.text %}
+                    <p>{{ message.text }}</p>
+                {% endif %}
+                {% if message.image %}
+                    <img src="{{ message.image }}" alt="Image">
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+
+    <div class="input-area">
+    
+        <form method="post" enctype="multipart/form-data" id="message-form">
+              <input type="text" name="message" placeholder="Type a message..."  autocomplete="off">
+               <label for="file-upload">📷</label>
+               <input id="file-upload" type="file" name="photo" accept="image/*" >
+              <button type="submit">Send</button>
+        </form>
+
+        <form method="post" id="camera-form">
+            <video id="camera-preview" autoplay playsinline></video>
+            <button type="button" id="capture-button">📷</button>
+            <input type="hidden" name="photoData" id="photoData">
+        </form>
+    </div>
+
+
+      <form method="post" action="{{ url_for('clear_messages') }}">
+        <button type="submit" class="clear-button">Clear Messages</button>
+    </form>
+
+
+
+    <script>
+
+        const chatMessages = document.getElementById('chat-messages');
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        scrollToBottom(); // Scroll to bottom initially
+        
+        // ---- Camera Functionality ----
+        const video = document.getElementById('camera-preview');
+        const captureButton = document.getElementById('capture-button');
+        const photoDataInput = document.getElementById('photoData');
+        const cameraForm = document.getElementById('camera-form');
+        const messageForm = document.getElementById('message-form');
+
+        let stream = null; // Store the camera stream globally
+
+        // Function to start the camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.style.display = 'block'; // Show video
+                captureButton.style.display = 'inline-block'; //show capture button
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Error accessing camera. Please ensure permissions are granted.');
+            }
+        }
+
+        // Event listener for capture button
+          captureButton.addEventListener('click', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                photoDataInput.value = canvas.toDataURL('image/jpeg');
+                cameraForm.submit();  // Submit the camera form
+
+                // Stop the camera stream after capturing *and* submitting
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null; // Reset the stream
+                     video.style.display = 'none'; // Hide video
+                     captureButton.style.display = 'none';
+                }
+          });
+
+
+
+        // Event listener for the file input (to show camera if selected)
+        document.getElementById('file-upload').addEventListener('click', (event) => {
+            // Prevent the default file dialog from opening immediately
+            event.preventDefault();
+           startCamera(); // start camera
+
+        });
+
+        //Prevent Submit default to use camera
+        messageForm.addEventListener('submit', (event) => {
+            // Check if a file is selected in the file input
+            if (document.getElementById('file-upload').files.length > 0) {
+              return; // If a file is selected, proceed with the default form submission
+            }
+
+            // Check if there's text in the input
+            if (document.querySelector('input[name="message"]').value.trim() !== "") {
+                return; // If there is text, submit the form
+            }
+
+            event.preventDefault();
+            //If the camera didn't opened and the button submit clicked, then start the camera
+            if (!stream) {
+               startCamera()
+            }
+
+        });
+
+
+    </script>
+</body>
+</html>
